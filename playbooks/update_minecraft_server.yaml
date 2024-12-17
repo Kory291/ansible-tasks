@@ -1,0 +1,13 @@
+- name: Update Minecraft Server
+  hosts: all
+  environment:
+    minecraft_server_dir: Minecraft_Server
+    minecraft_server_user: github_user
+
+  tasks:
+    - name: Stop the minecraft server
+      command: sudo docker compose stop
+      args:
+        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+    # - name: Backup the minecraft server
+    #   command: sudo docker run --rm -v debian_latest -v 
