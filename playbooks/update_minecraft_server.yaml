@@ -5,9 +5,25 @@
     minecraft_server_user: github_user
 
   tasks:
-    - name: Stop the minecraft server
-      command: sudo docker compose stop
+    - name: Backup the minecraft server
+      ansible.builtin.command: sudo docker exec minecraft_server tar -czvf /backup/minecraft_server_backup /data
       args:
         chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
-    # - name: Backup the minecraft server
-    #   command: sudo docker run --rm -v debian_latest -v 
+      changed_when: true
+    - name: Copy the new minecraft server backup to host filesystem
+      ansible.builtin.command: >
+        sudo docker cp minecraft_server:/backup/minecraft_server_backup
+        /home/{minecraft_server_user}/{minecraft_server_dir}/backup_$(date +%Y%m%d%H%M%S).tar.gz
+      args:
+        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+      changed_when: true
+    - name: Stop the minecraft server
+      ansible.builtin.command: sudo docker compose down
+      args:
+        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+      changed_when: true
+    - name: Update the minecraft server
+      ansible.builtin.command: sudo docker compose up -d
+      args:
+        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+      changed_when: true
