@@ -1,29 +1,28 @@
 - name: Update Minecraft Server
   hosts: all
-  environment:
+  vars:
     minecraft_server_dir: Minecraft_Server
     minecraft_server_user: github_user
 
   tasks:
     - name: Backup the minecraft server
-      ansible.builtin.command: sudo docker exec minecraft_server tar -czvf /backup/minecraft_server_backup /data
-      args:
-        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+      ansible.builtin.command: sudo docker exec minecraft_server tar -czvf /minecraft_server_backup /data
       changed_when: true
     - name: Copy the new minecraft server backup to host filesystem
-      ansible.builtin.command: >
-        sudo docker cp minecraft_server:/backup/minecraft_server_backup
-        /home/{minecraft_server_user}/{minecraft_server_dir}/backup_$(date +%Y%m%d%H%M%S).tar.gz
+      ansible.builtin.shell: sudo docker cp minecraft_server:/minecraft_server_backup /home/{{ minecraft_server_user }}/{{ minecraft_server_dir }}/backup_$(date +%Y_%m_%d-%H_%M_%S).tar.gz
       args:
-        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+        chdir: "/home/{{ minecraft_server_user }}/{{ minecraft_server_dir }}"
       changed_when: true
+      become: true
     - name: Stop the minecraft server
       ansible.builtin.command: sudo docker compose down
       args:
-        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+        chdir: "/home/{{ minecraft_server_user }}/{{ minecraft_server_dir }}"
       changed_when: true
+      become: true
     - name: Start minecraft server
       ansible.builtin.command: sudo docker compose up -d
       args:
-        chdir: /home/{minecraft_server_user}/{minecraft_server_dir}
+        chdir: "/home/{{ minecraft_server_user }}/{{ minecraft_server_dir }}"
       changed_when: true
+      become: true
